@@ -2,6 +2,29 @@ import os
 import subprocess
 
 
+from google.genai import types
+
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Runs a Python script within a specified relative path. Returns the formatted stdout upon successful execution; otherwise, returns a descriptive error message.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="File path to a file, relative to the working directory (default is the working directory itself).",
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(type=types.Type.STRING),
+                description="Opional list of arguments to pass to the python script.",
+            ),
+        },
+        required=["file_path"],
+    ),
+)
+
+
 def run_python_file(working_directory, file_path, args=None) -> str:
     abs_working_dir = os.path.abspath(working_directory)
     target_file = os.path.normpath(os.path.join(abs_working_dir, file_path))
@@ -36,8 +59,6 @@ def run_python_file(working_directory, file_path, args=None) -> str:
             timeout=30,
             text=True,
         )
-
-        # print(process_complete)
 
         returncode = process_complete.returncode
         if returncode != 0:
